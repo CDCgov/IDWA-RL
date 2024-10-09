@@ -20,10 +20,12 @@ The RecordLinker is a service that links records from two datasets based on a se
 ### Initial Setup
 
 Set up a Python virtual environment and install the required development dependencies:
+NOTE: The `-e` flag is used to install the package in "src/" in editable mode. This allows
+the package to be imported in other modules without needing to re-install the package.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install '.[dev]'
+pip install -e '.[dev]'
 ```
 
 ### Running the API

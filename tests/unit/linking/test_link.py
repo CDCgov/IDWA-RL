@@ -12,6 +12,7 @@ import uuid
 import pytest
 
 from recordlinker import models
+from recordlinker import schemas
 from recordlinker import utils
 from recordlinker.linking import link
 from recordlinker.linking import matchers
@@ -43,7 +44,7 @@ class TestAddPersonResource:
 
 class TestCompare:
     def test_compare_match(self):
-        rec = models.PIIRecord(
+        rec = schemas.PIIRecord(
             **{
                 "name": [
                     {
@@ -77,7 +78,7 @@ class TestCompare:
         assert link.compare(rec, pat, linkage_pass) is True
 
     def test_compare_no_match(self):
-        rec = models.PIIRecord(
+        rec = schemas.PIIRecord(
             **{
                 "name": [
                     {

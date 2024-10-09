@@ -50,7 +50,10 @@ prod = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
 
 [tool.setuptools_scm]
 write_to = "src/recordlinker/_version.py"

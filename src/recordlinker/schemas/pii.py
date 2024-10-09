@@ -5,6 +5,8 @@ import typing
 import dateutil.parser
 import pydantic
 
+from recordlinker import models
+
 
 class Feature(enum.Enum):
     """
@@ -153,48 +155,80 @@ class PIIRecord(pydantic.BaseModel):
                 return Sex.FEMALE
             return Sex.UNKNOWN
 
-    def field_iter(self, field: Feature) -> typing.Iterator[str]:
+    def field_iter(self, feature: Feature) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.
         Empty strings are not included in the iterator.
         """
-        if not isinstance(field, Feature):
-            raise ValueError(f"Invalid feature: {field}")
+        if not isinstance(feature, Feature):
+            raise ValueError(f"Invalid feature: {feature}")
 
-        if field == Feature.BIRTHDATE:
+        if feature == Feature.BIRTHDATE:
             if self.birth_date:
                 yield str(self.birth_date)
-        elif field == Feature.MRN:
+        elif feature == Feature.MRN:
             if self.mrn:
                 yield self.mrn
-        elif field == Feature.SEX:
+        elif feature == Feature.SEX:
             if self.sex:
                 yield str(self.sex)
-        elif field == Feature.ADDRESS:
+        elif feature == Feature.ADDRESS:
             for address in self.address:
                 # The 2nd, 3rd, etc lines of an address are not as important as
                 # the first line, so we only include the first line in the comparison.
                 if address.line and address.line[0]:
                     yield address.line[0]
-        elif field == Feature.CITY:
+        elif feature == Feature.CITY:
             for address in self.address:
                 if address.city:
                     yield address.city
-        elif field == Feature.STATE:
+        elif feature == Feature.STATE:
             for address in self.address:
                 if address.state:
                     yield address.state
-        elif field == Feature.ZIPCODE:
+        elif feature == Feature.ZIPCODE:
             for address in self.address:
                 if address.postal_code:
                     # only use the first 5 digits for comparison
                     yield address.postal_code[:5]
-        elif field == Feature.FIRST_NAME:
+        elif feature == Feature.FIRST_NAME:
             for name in self.name:
                 for given in name.given:
                     if given:
                         yield given
-        elif field == Feature.LAST_NAME:
+        elif feature == Feature.LAST_NAME:
             for name in self.name:
                 if name.family:
                     yield name.family
+
+    def blocking_keys(self, key: models.BlockingKey) -> set[str]:
+        """
+        For a particular Feature, return a set of all possible Blocking Key values
+        for this record.  Many keys will only have 1 possible value, but some (like
+        first name) could have multiple values.
+        """
+        vals: set[str] = set()
+
+        if not isinstance(key, models.BlockingKey):
+            raise ValueError(f"Invalid BlockingKey: {key}")
+
+        if key == models.BlockingKey.BIRTHDATE:
+            # NOTE: we could optimize here and remove the dashes from the date
+            vals.update(self.field_iter(Feature.BIRTHDATE))
+        elif key == models.BlockingKey.MRN:
+            vals.update({x[-4:] for x in self.field_iter(Feature.MRN)})
+        elif key == models.BlockingKey.SEX:
+            vals.update(self.field_iter(Feature.SEX))
+        elif key == models.BlockingKey.ZIP:
+            vals.update(self.field_iter(Feature.ZIPCODE))
+        elif key == models.BlockingKey.FIRST_NAME:
+            vals.update({x[:4] for x in self.field_iter(Feature.FIRST_NAME)})
+        elif key == models.BlockingKey.LAST_NAME:
+            vals.update({x[:4] for x in self.field_iter(Feature.LAST_NAME)})
+        elif key == models.BlockingKey.ADDRESS:
+            vals.update({x[:4] for x in self.field_iter(Feature.ADDRESS)})
+
+        # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
+        if any(len(x) > models.BLOCKING_VALUE_MAX_LENGTH for x in vals):
+            raise RuntimeError(f"{self} has a value longer than {models.BLOCKING_VALUE_MAX_LENGTH}")
+        return vals

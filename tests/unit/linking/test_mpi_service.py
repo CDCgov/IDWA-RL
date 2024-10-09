@@ -8,6 +8,7 @@ This module contains the unit tests for the recordlinker.linking.mpi_service mod
 import pytest
 
 from recordlinker import models
+from recordlinker import schemas
 from recordlinker.linking import mpi_service
 
 
@@ -43,7 +44,7 @@ class TestInsertBlockingKeys:
 class TestInsertPatient:
     def test_no_person(self, session):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
-        record = models.PIIRecord(**data)
+        record = schemas.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record)
         assert patient.person_id is not None
         assert patient.data["birth_date"] == "1980-01-01"
@@ -56,7 +57,7 @@ class TestInsertPatient:
 
     def test_no_person_with_external_id(self, session):
         data = {"name": [{"given": ["Johnathon",], "family": "Smith"}], "birthdate": "01/01/1980"}
-        record = models.PIIRecord(**data)
+        record = schemas.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record, external_person_id="123456")
         assert patient.person_id is not None
         assert patient.data["birth_date"] == "1980-01-01"
@@ -73,7 +74,7 @@ class TestInsertPatient:
         session.add(person)
         session.flush()
         data = {"name": [{"given": ["George",], "family": "Harrison"}], "birthdate": "1943-2-25"}
-        record = models.PIIRecord(**data)
+        record = schemas.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record, person=person)
         assert patient.person_id == person.id
         assert patient.data["birth_date"] == "1943-02-25"
@@ -87,7 +88,7 @@ class TestInsertPatient:
         session.add(person)
         session.flush()
         data = {"name": [{"given": ["George",], "family": "Harrison"}]}
-        record = models.PIIRecord(**data)
+        record = schemas.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record, person=person, external_patient_id="abc")
         assert patient.person_id == person.id
         assert patient.data == data
@@ -110,76 +111,76 @@ class TestGetBlockData:
             {"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""},
         ]
         for datum in data:
-            mpi_service.insert_patient(session, models.PIIRecord(**datum))
+            mpi_service.insert_patient(session, schemas.PIIRecord(**datum))
 
     def test_block_invalid_key(self, session):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
         algo_config = {"blocks": [{"value": "unknown"}]}
         with pytest.raises(ValueError):
-            mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+            mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
 
     def test_block_missing_data(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
         algo_config = {"blocks": [{"value": "birthdate"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 0
 
     def test_block_empty_block_key(self, session, prime_index):
         data = {"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 0
 
     def test_block_on_birthdate(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 4
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "11/12/1985"}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 1
 
     def test_block_on_first_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "first_name"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 5
 
     def test_block_on_birthdate_and_first_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 4
 
     def test_block_on_birthdate_first_name_and_last_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}, {"value": "last_name"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 3
         data = {"name": [{"given": ["Billy",], "family": "Smitty"}], "birthdate": "Jan 1 1980"}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 2
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Doeherty"}], "birthdate": "Jan 1 1980"}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 0
 
     def test_block_on_multiple_names(self, session, prime_index):
         data = {"name": [{"use": "official", "given": ["John", "Doe"], "family": "Smith"}, {"use": "maiden", "given": ["John"], "family": "Doe"}]}
         algo_config = {"blocks": [{"value": "first_name"}, {"value": "last_name"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 4
 
     def test_block_missing_keys(self, session, prime_index):
         data = {"birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "last_name"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 0
 
     def test_block_on_duplicates(self, session):
         data = {"external_id": "d3ecb447-d05f-4ec1-8ef1-ce4bbda59a25", "birth_date": "1997-12-09", "sex": "F", "mrn": "7bb85f23-044b-1f92-3521-f2cf258601b0", "address": [{"line": ["783 Cronin Stravenue"], "city": "Los Angeles", "state": "CA", "postal_code": "90405", "country": "US", "latitude": 34.12688209447149, "longitude": -118.56442326530481, "extension": [{"url": "http://hl7.org/fhir/StructureDefinition/geolocation", "extension": [{"url": "latitude", "valueDecimal": 34.12688209447149}, {"url": "longitude", "valueDecimal": -118.56442326530481}]}]}], "name": [{"family": "Rodr\u00edguez701", "given": ["Lourdes258", "Blanca837"], "use": "official", "prefix": ["Ms."]}], "phone": [{"system": "phone", "value": "555-401-5073", "use": "home"}]}
-        mpi_service.insert_patient(session, models.PIIRecord(**data))
-        mpi_service.insert_patient(session, models.PIIRecord(**data))
-        mpi_service.insert_patient(session, models.PIIRecord(**data))
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
         algo_config = {"blocks": [{"value": "first_name"}, {"value": "last_name"}, {"value": "zip"}, {"value": "sex"}]}
-        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algo_config)
         assert len(matches) == 3
