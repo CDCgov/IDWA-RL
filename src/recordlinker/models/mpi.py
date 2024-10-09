@@ -145,6 +145,16 @@ class BlockingKey(enum.Enum):
         self.id = id
         self.description = description
 
+    @classmethod
+    def from_id(cls, id: int):
+        """
+        Given an id, return the BlockingKey
+        """
+        for member in cls:
+            if member.value[0] == id:
+                return member
+        raise ValueError(f"No BlockingKey with id {id} found.")
+
     def to_value(self, record: PIIRecord) -> set[str]:
         """
         Given a data dictionary of Patient PII data, return a set of all

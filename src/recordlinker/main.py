@@ -1,5 +1,4 @@
 import copy
-import json
 from pathlib import Path
 from typing import Annotated
 from typing import Optional
@@ -18,7 +17,6 @@ from sqlalchemy.sql import expression
 from recordlinker import utils
 from recordlinker.base_service import BaseService
 from recordlinker.database import get_session
-from recordlinker.linkage import algorithms as DIBBS_ALGOS
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
 
@@ -133,23 +131,17 @@ async def link_record(
 
     # get label from params
     algorithm_label = input.get("algorithm")
-    algo_config = DIBBS_ALGOS.DIBBS_BASIC
 
-    # if we do have an algorithm label specified
-    if algorithm_label:
-        algorithm = algorithm_service.get_algorithm_by_label(db_session, algorithm_label)
+    #get algorithm from DB
+    algorithm = algorithm_service.get_algorithm_by_label(db_session, algorithm_label)
 
-        if not algorithm:
-            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-            return {
-                "found_match": False,
-                "updated_bundle": input_bundle,
-                "message": "Error: Invalid algorithm specified",
-            }
-
-        # temp to map the algorithm to our predefined config file for now
-        if algorithm.label == "DIBBS_ENHANCED":
-            algo_config = DIBBS_ALGOS.DIBBS_ENHANCED
+    if not algorithm:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+        return {
+            "found_match": False,
+            "updated_bundle": input_bundle,
+            "message": "Error: Invalid algorithm specified",
+        }
 
     # Now extract the patient record we want to link
     try:
@@ -171,13 +163,10 @@ async def link_record(
     try:
         # Make a copy of record_to_link so we don't modify the original
         record = copy.deepcopy(record_to_link)
-        update_algo = json.dumps(algo_config)
-        update_algo = update_algo.replace(".linkage.", ".linking.")
-        algo_config = json.loads(update_algo)
         (found_match, new_person_id) = link.link_record_against_mpi(
             record=record,
             session=db_session,
-            algo_config=algo_config,
+            algorithm=algorithm,
             external_person_id=external_id,
         )
         updated_bundle = link.add_person_resource(
