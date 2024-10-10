@@ -60,7 +60,7 @@ DIBBS_ENHANCED = {
 DIBBS_BASIC_PASS_ONE = {
     "id": 1,
     "algorithm_id": 1,
-    "blocking_keys": [BlockingKey.BIRTHDATE.id, BlockingKey.MRN.id, BlockingKey.SEX.id],
+    "blocking_keys": [BlockingKey.BIRTHDATE.name, BlockingKey.MRN.name, BlockingKey.SEX.name],
     "evaluators": {"first_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string", "last_name": "func:recordlinker.linking.matchers.feature_match_exact"},
     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
     "cluster_ratio": 0.9,
@@ -70,7 +70,7 @@ DIBBS_BASIC_PASS_ONE = {
 DIBBS_BASIC_PASS_TWO = {
     "id": 2,
     "algorithm_id": 1,
-    "blocking_keys": [BlockingKey.ZIP.id, BlockingKey.FIRST_NAME.id, BlockingKey.LAST_NAME.id, BlockingKey.SEX.id],
+    "blocking_keys": [BlockingKey.ZIP.name, BlockingKey.FIRST_NAME.name, BlockingKey.LAST_NAME.name, BlockingKey.SEX.name],
     "evaluators": {"address": "func:recordlinker.linking.matchers.feature_match_fuzzy_string", "birthdate": "func:recordlinker.linking.matchers.feature_match_exact"},
     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
     "cluster_ratio": 0.9,
@@ -80,7 +80,7 @@ DIBBS_BASIC_PASS_TWO = {
 DIBBS_ENHANCED_PASS_ONE = {
     "id": 3,
     "algorithm_id": 2,
-    "blocking_keys": [BlockingKey.BIRTHDATE.id, BlockingKey.MRN.id, BlockingKey.SEX.id],
+    "blocking_keys": [BlockingKey.BIRTHDATE.name, BlockingKey.MRN.name, BlockingKey.SEX.name],
     "evaluators": {"first_name": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare", "last_name": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"},
     "rule": "func:recordlinker.linking.matchers.eval_log_odds_cutoff",
     "cluster_ratio": 0.9,
@@ -95,7 +95,7 @@ DIBBS_ENHANCED_PASS_ONE = {
 DIBBS_ENHANCED_PASS_TWO = {
     "id": 4,
     "algorithm_id": 2,
-    "blocking_keys": [BlockingKey.ZIP.id, BlockingKey.FIRST_NAME.id, BlockingKey.LAST_NAME.id, BlockingKey.SEX.id],
+    "blocking_keys": [BlockingKey.ZIP.name, BlockingKey.FIRST_NAME.name, BlockingKey.LAST_NAME.name, BlockingKey.SEX.name],
     "evaluators": {"address": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare", "birthdate": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"},
     "rule": "func:recordlinker.linking.matchers.eval_log_odds_cutoff",
     "cluster_ratio": 0.9,
