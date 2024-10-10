@@ -115,25 +115,25 @@ class TestGetBlockData:
     def test_block_invalid_key(self, session):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
         #passing in a invalid id of -1 for a blocking key which should raise a value error
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[-1], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["INVALID"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         with pytest.raises(ValueError):
             mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
 
     def test_block_missing_data(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["BIRTHDATE"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
     def test_block_empty_block_key(self, session, prime_index):
         data = {"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""}
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1,5], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["BIRTHDATE","FIRST_NAME"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
     def test_block_on_birthdate(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["BIRTHDATE"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
 
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 4
@@ -143,19 +143,19 @@ class TestGetBlockData:
 
     def test_block_on_first_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[5], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["FIRST_NAME"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 5
 
     def test_block_on_birthdate_and_first_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1,5], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["BIRTHDATE","FIRST_NAME"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 4
 
     def test_block_on_birthdate_first_name_and_last_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1,5,6], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["BIRTHDATE","FIRST_NAME","LAST_NAME"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 3
         data = {"name": [{"given": ["Billy",], "family": "Smitty"}], "birthdate": "Jan 1 1980"}
@@ -167,13 +167,13 @@ class TestGetBlockData:
 
     def test_block_on_multiple_names(self, session, prime_index):
         data = {"name": [{"use": "official", "given": ["John", "Doe"], "family": "Smith"}, {"use": "maiden", "given": ["John"], "family": "Doe"}]}
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[5,6], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["FIRST_NAME","LAST_NAME"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 4
 
     def test_block_missing_keys(self, session, prime_index):
         data = {"birthdate": "01/01/1980"}
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1,6], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["BIRTHDATE","LAST_NAME"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
@@ -182,7 +182,7 @@ class TestGetBlockData:
         mpi_service.insert_patient(session, models.PIIRecord(**data))
         mpi_service.insert_patient(session, models.PIIRecord(**data))
         mpi_service.insert_patient(session, models.PIIRecord(**data))
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[5,6,4,3], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["FIRST_NAME","LAST_NAME","ZIP","SEX"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
 
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 3

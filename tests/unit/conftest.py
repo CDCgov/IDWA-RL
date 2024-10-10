@@ -32,7 +32,7 @@ def basic_algorithm():
     basic_algo_pass1 = models.AlgorithmPass(
         id=1, 
         algorithm_id=1, 
-        blocking_keys=[1,2,3], 
+        blocking_keys=["BIRTHDATE","MRN","SEX"], 
         evaluators={
             "first_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string", 
             "last_name": "func:recordlinker.linking.matchers.feature_match_exact"
@@ -53,7 +53,7 @@ def basic_algorithm():
     basic_algo_pass2 = models.AlgorithmPass(
         id=2, 
         algorithm_id=1, 
-        blocking_keys=[4,5,6,3], 
+        blocking_keys=["ZIP","FIRST_NAME","LAST_NAME","SEX"], 
         evaluators={
             "address": "func:recordlinker.linking.matchers.feature_match_fuzzy_string", 
             "birthdate": "func:recordlinker.linking.matchers.feature_match_exact"
@@ -78,7 +78,7 @@ def enhanced_algorithm():
     enhanced_algo_pass1 = models.AlgorithmPass(
         id=1, 
         algorithm_id=1, 
-        blocking_keys=[1,2,3], 
+        blocking_keys=["BIRTHDATE","MRN","SEX"], 
         evaluators={
             "first_name": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare", 
             "last_name": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
@@ -112,7 +112,7 @@ def enhanced_algorithm():
     enhanced_algo_pass2 = models.AlgorithmPass(
         id=2, 
         algorithm_id=1, 
-        blocking_keys=[4,5,6,3], 
+        blocking_keys=["ZIP","FIRST_NAME","LAST_NAME","SEX"], 
         evaluators={
             "address": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare", 
             "birthdate": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"

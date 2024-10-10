@@ -29,7 +29,9 @@ def get_block_data(
     # is considered a match.
     for idx, key_id in enumerate(algorithm_pass.blocking_keys):
         #get the BlockingKey obj from the id
-        key = models.BlockingKey.from_id(key_id)
+        if not hasattr(models.BlockingKey, key_id):
+            raise ValueError(f"No BlockingKey with id {id} found.")
+        key = getattr(models.BlockingKey, key_id)
 
         # Get all the possible values from the data for this key
         vals = [v for v in key.to_value(record)]

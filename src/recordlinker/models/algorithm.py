@@ -53,7 +53,7 @@ class AlgorithmPass(Base):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     algorithm_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("algorithm.id"))
     algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
-    blocking_keys: orm.Mapped[list[int]] = orm.mapped_column(sqltypes.JSON)
+    blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
     evaluators: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
     rule: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255))
     cluster_ratio: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
