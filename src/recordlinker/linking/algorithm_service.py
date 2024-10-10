@@ -4,13 +4,15 @@ recordlinker.linking.algorithm_service
 
 This module provides the data access functions to the algorithm config tables
 """
+import typing
+
 from sqlalchemy import orm
 from sqlalchemy import select
 
 from recordlinker import models
 
 
-def get_all_algorithm_labels(session: orm.Session) -> list[str]:
+def get_all_algorithm_labels(session: orm.Session) -> typing.Sequence[str]:
     """
     Gets a list of algorithms from the MPI database.
     returns: list of all labels column from algorithms table
