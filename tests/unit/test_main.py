@@ -3,20 +3,16 @@ from unittest import mock
 
 from fastapi import status
 
-from recordlinker import models
 from recordlinker import utils
-
 
 def test_health_check(client):
     actual_response = client.get("/")
     assert actual_response.status_code == 200
     assert actual_response.json() == {"status": "OK"}
 
-
 def test_openapi(client):
     actual_response = client.get("/openapi.json")
     assert actual_response.status_code == 200
-
 
 @mock.patch("recordlinker.linking.algorithm_service.get_all_algorithm_labels")
 def test_get_algorithms(patched_subprocess, client):
@@ -26,8 +22,9 @@ def test_get_algorithms(patched_subprocess, client):
     assert actual_response.json() == {"algorithms": ["DIBBS_BASIC"]}
     assert actual_response.status_code == status.HTTP_200_OK
 
-
-def test_linkage_bundle_with_no_patient(client):
+@mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
+def test_linkage_bundle_with_no_patient(patched_subprocess, basic_algorithm, client):
+    patched_subprocess.return_value = basic_algorithm
     bad_bundle = {"entry": []}
     expected_response = {
         "message": "Supplied bundle contains no Patient resource to link on.",
@@ -41,8 +38,9 @@ def test_linkage_bundle_with_no_patient(client):
     assert actual_response.json() == expected_response
     assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
 
-
-def test_linkage_success(client):
+@mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
+def test_linkage_success(patched_subprocess, basic_algorithm, client):
+    patched_subprocess.return_value = basic_algorithm
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     entry_list = copy.deepcopy(test_bundle["entry"])
 
@@ -103,13 +101,9 @@ def test_linkage_success(client):
     ][0]
     assert not resp_6.json()["found_match"]
 
-
 @mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
-def test_use_enhanced_algo(patched_subprocess, client):
-    patched_subprocess.return_value = models.Algorithm(
-        label="DIBBS_ENHANCED", is_default=False, description="Enhanced algo"
-    )
-
+def test_use_enhanced_algo(patched_subprocess, enhanced_algorithm, client):
+    patched_subprocess.return_value = enhanced_algorithm
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     entry_list = copy.deepcopy(test_bundle["entry"])
 
@@ -173,7 +167,6 @@ def test_use_enhanced_algo(patched_subprocess, client):
 @mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
 def test_invalid_algorithm_param(patched_subprocess, client):
     patched_subprocess.return_value = None
-
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     expected_response = {
         "found_match": False,

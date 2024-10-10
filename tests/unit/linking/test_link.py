@@ -14,7 +14,6 @@ import pytest
 from recordlinker import models
 from recordlinker import utils
 from recordlinker.linking import link
-from recordlinker.linking import matchers
 
 
 class TestAddPersonResource:
@@ -67,14 +66,10 @@ class TestCompare:
                 ]
             }
         )
-        linkage_pass = {
-            "funcs": {
-                "first_name": matchers.feature_match_exact,
-                "last_name": matchers.feature_match_fuzzy_string,
-            },
-            "matching_rule": matchers.eval_perfect_match,
-        }
-        assert link.compare(rec, pat, linkage_pass) is True
+
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1], evaluators={"first_name": "func:recordlinker.linking.matchers.feature_match_exact", "last_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"}, rule="func:recordlinker.linking.matchers.eval_perfect_match", cluster_ratio=1.0, kwargs={})
+
+        assert link.compare(rec, pat, algorithm_pass) is True
 
     def test_compare_no_match(self):
         rec = models.PIIRecord(
@@ -101,14 +96,9 @@ class TestCompare:
                 ]
             }
         )
-        linkage_pass = {
-            "funcs": {
-                "first_name": matchers.feature_match_exact,
-                "last_name": matchers.feature_match_exact,
-            },
-            "matching_rule": matchers.eval_perfect_match,
-        }
-        assert link.compare(rec, pat, linkage_pass) is False
+        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1], evaluators={"first_name": "func:recordlinker.linking.matchers.feature_match_exact", "last_name": "func:recordlinker.linking.matchers.feature_match_exact"}, rule="func:recordlinker.linking.matchers.eval_perfect_match", cluster_ratio=1.0, kwargs={})
+
+        assert link.compare(rec, pat, algorithm_pass) is False
 
 
 class TestLinkRecordAgainstMpi:
