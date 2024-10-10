@@ -114,3 +114,6 @@ class TestBlockingKey:
         assert models.BlockingKey.ADDRESS.to_value(rec) == {"123 "}
         rec = models.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
         assert models.BlockingKey.ADDRESS.to_value(rec) == {"123 ", "456 "}
+
+    def test_get_blockingkey_from_id(self):
+        assert models.BlockingKey.from_id(1) == models.BlockingKey.BIRTHDATE

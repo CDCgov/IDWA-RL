@@ -151,7 +151,7 @@ class BlockingKey(enum.Enum):
         Given an id, return the BlockingKey
         """
         for member in cls:
-            if member.value[0] == id:
+            if member.id == id:
                 return member
         raise ValueError(f"No BlockingKey with id {id} found.")
 
