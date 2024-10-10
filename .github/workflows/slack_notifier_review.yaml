@@ -6,6 +6,7 @@ on:
         - reopened
         - ready_for_review
 
+
 jobs:
   slack-ready-for-review:
     runs-on: ubuntu-latest
@@ -21,13 +22,13 @@ jobs:
         with:
           payload: |
             {
-              "text": "${{ github.event.pull_request.user.login }} has a PR ready for review! :speech_balloon: \n${{ github.event.pull_request.html_url }}",
+              "text": ":code-review: Pull request ready for review by ${{ github.event.pull_request.user.login }}\n\n<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ github.event.pull_request.user.login }} has a PR ready for review! :speech_balloon: \n${{ github.event.pull_request.html_url }}"
+                    "text": ":code-review: Pull request ready for review by ${{ github.event.pull_request.user.login }}\n\n<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
                   }
                 }
               ]
